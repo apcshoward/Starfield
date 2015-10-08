@@ -1,11 +1,18 @@
-//your code here
+//your code here 
+PImage img;
 void setup()
 {
-	//your code here
+	//your code here 
+	img=loadImage("Baron.jpg"); 
+	size (500,500); 
+	
 }
 void draw()
 {
-	//your code here
+	//your code here 
+	img=loadImage("Baron.jpg"); 
+	size (500,500); 
+	
 }
 class NormalParticle
 {
