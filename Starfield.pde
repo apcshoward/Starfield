@@ -1,33 +1,304 @@
-//your code here 
+/*@pjs preload="Baron.jpg";*/
 PImage img;
+public static int num=100;
+Particle firework1[]=new Particle[num+1];
+Particle firework2[]=new Particle[num+1];
+float counter1=0;
+float counter2=0;
+boolean launch1=true;
+boolean launch2=false;
+float opac=30;
+boolean beginLoop=false;
 void setup()
 {
-	//your code here 
-	img=loadImage("Baron.jpg"); 
-	size (500,500); 
-	
+  //frameRate(1);
+    img=loadImage("Baron.jpg");
+    size(1000,700);
+    background(0);
+    for(int i=0;i<num;i++)
+    {
+        firework1[i]=new NormalParticle(1);
+    }
+    firework1[num]=new OddballParticle(width/2,height,1);
+    //firework1[1]=new jumbo(1);
+    for(int i=0;i<num;i++)
+    {
+        firework2[i]=new NormalParticle(2);
+    }
+    firework2[num]=new OddballParticle(width/2,height,2);
+    //firework2[1]=new jumbo(2);
+    image(img,0,0);
+    textAlign(CENTER);
+    textSize(36);
+    text("click to shoot", width/2, height/2);
 }
 void draw()
 {
-	//your code here 
-	img=loadImage("Baron.jpg"); 
-	size (500,500); 
-	
+    if(beginLoop==true)
+    {
+        startLoop();
+        noStroke();
+        image(img,0,0);
+        tint(255,opac);
+        if(launch1==true)
+        {
+            for(int i=0;i<num+1;i++)
+            {
+                firework1[i].move();
+                firework1[i].show();
+                ((OddballParticle)firework1[num]).reachCenter();
+            }
+        }
+        if(launch2==true)
+        {
+            for(int i=0;i<num+1;i++)
+            {
+                firework2[i].move();
+                firework2[i].show();
+                ((OddballParticle)firework2[num]).reachCenter();
+            }
+        }
+    }
 }
-class NormalParticle
+class NormalParticle implements Particle
 {
-	//your code here
+    double xPosition,yPosition,angle,speed;
+    color c;
+    int id;
+    NormalParticle()
+    {
+        xPosition=width/2;
+        yPosition=height;
+        angle=(Math.random()*2)*Math.PI;
+        speed=0;
+        c=0;
+    }
+    NormalParticle(int z)
+    {
+        xPosition=width/2;
+        yPosition=height;
+        angle=(Math.random()*2)*Math.PI;
+        speed=0;
+        c=0;
+        id=z;
+    }
+    public void move()
+    {
+        xPosition=Math.cos(angle)*speed+xPosition;
+        yPosition=Math.sin(angle)*speed+yPosition;
+        if (xPosition<0 || xPosition>width || yPosition<0)
+        {
+            if(launch1==true)
+            {
+              if(id==1)
+              {
+                    counter1++;    
+              }  
+            }
+            if(launch2==true)
+            {
+              if(id==2)
+              {
+                  counter2++;
+              }
+            }
+        }
+    }
+    public void show()
+    {
+        noStroke();
+        fill(c);
+        ellipse((float)(xPosition),(float)(yPosition),3,3);
+    }
+    void reCenter()
+    {
+        xPosition=width/2;
+        yPosition=height+500;
+        angle=(Math.random()*2)*Math.PI;
+        speed=0;
+        c=0;
+    }
+    void fire()
+    {
+        if(id==1)
+        {
+            xPosition=((OddballParticle)firework1[num]).xPosition;
+            yPosition=((OddballParticle)firework1[num]).yPosition;
+        }
+        if(id==2)
+        {
+            xPosition=((OddballParticle)firework2[num]).xPosition;
+            yPosition=((OddballParticle)firework2[num]).yPosition;
+        }
+        speed=Math.random()*8+1;
+        c= color((int)(Math.random()*51),(int)(Math.random()*206),(int)(Math.random()*51));
+    }
+}
+class OddballParticle implements Particle
+{
+    double xPosition,yPosition,angle,speed;
+    color c;
+    int id;
+    OddballParticle(int x, int y, int z)
+    {
+        xPosition=x;
+        yPosition=y;
+        speed=8;
+        c= 255;
+        id=z;
+        if(id==2)
+        {
+            if(((OddballParticle)firework1[num]).angle > (3*Math.PI/2))
+            {
+                angle=Math.random()*0.5+4*(Math.PI/3);
+            }
+            else if (((OddballParticle)firework1[num]).angle < (3*Math.PI/2))
+            {
+                angle=Math.random()*0.5+4.5*(Math.PI/3);
+            }
+        }
+        else
+        {
+            angle=Math.random()+4*(Math.PI/3);
+        }
+    }
+    public void move()
+    {
+        xPosition=Math.cos(angle)*speed+xPosition;
+        yPosition=Math.sin(angle)*speed+yPosition;
+        if(speed != 0)
+        {
+            if (angle<(3*Math.PI/2))
+            {
+                angle=angle-0.005;
+            }
+            else if (angle>(3*Math.PI/2))
+            {
+                angle=angle+0.005;
+            }
+        }
+    }
+    public void show()
+    {
+        noStroke();
+        fill(c);
+        ellipse((float)(xPosition),(float)(yPosition),10,10);
+    }
+    void reachCenter()
+    {
+        if((yPosition<=height-350) || (xPosition<=100) || (xPosition>=width-100))
+        {
+            speed=0;
+            c=0;
+            explode(id);
+            xPosition=width/2;
+            yPosition=height;
+        }
+    }
 }
 interface Particle
 {
-	//your code here
+    public void move();
+    public void show();
 }
-class OddballParticle //uses an interface
+void explode(int x)
 {
-	//your code here
+    int id=x;
+    for(int i=0;i<num+1;i++)
+    {
+        if(id==1)
+        {
+            if(firework1[i] instanceof NormalParticle)
+            {
+                ((NormalParticle)firework1[i]).fire();
+            }    
+            launch2=true;
+        }
+        if(id==2)
+        {
+            if(firework2[i] instanceof NormalParticle)
+            {
+                ((NormalParticle)firework2[i]).fire();
+            } 
+        }
+    }
 }
-class JumboParticle //uses inheritance
+void startLoop()
 {
-	//your code here
+    if(counter1>=num*30)
+    {
+        if(launch1==true)
+        {
+            for(int i=0;i<num+1;i++)
+            {
+                if(firework1[i] instanceof NormalParticle)
+                {
+                    ((NormalParticle)firework1[i]).reCenter();
+                }
+                if(firework1[i] instanceof OddballParticle)
+                {
+                    ((OddballParticle)firework1[i]).c =255;
+                    if(((OddballParticle)firework1[i]).speed==0)
+                    {
+                        ((OddballParticle)firework1[i]).angle=Math.random()+4*(Math.PI/3);
+                    }
+                    ((OddballParticle)firework1[i]).speed=8;
+                }
+            }
+        }
+        counter1=0;
+        launch1=false;
+        launch2=true;
+    }
+    if(counter2>=num*30)
+    {
+        if(launch2==true)
+        {
+            for(int i=0;i<num+1;i++)
+            {
+                if(firework2[i] instanceof NormalParticle)
+                {
+                    ((NormalParticle)firework2[i]).reCenter();
+                }
+                if(firework2[i] instanceof OddballParticle)
+                {
+                    ((OddballParticle)firework2[i]).c=255;
+                    if(((OddballParticle)firework2[i]).speed==0)
+                    {
+                        if(((OddballParticle)firework1[num]).angle > (3*Math.PI/2))
+                        {
+                            ((OddballParticle)firework2[num]).angle=Math.random()*0.5+4*(Math.PI/3);
+                        }
+                        else if (((OddballParticle)firework1[num]).angle < (3*Math.PI/2))
+                        {
+                            ((OddballParticle)firework2[num]).angle=Math.random()*0.5+4.5*(Math.PI/3);
+                        }
+                    }
+                    ((OddballParticle)firework2[i]).speed=8;
+                }
+            }
+        }
+        counter2=0;
+        launch2=false;
+        launch1=true;
+    }
 }
-
+class jumbo extends NormalParticle
+{
+    jumbo(int z)
+    {
+        xPosition=width;
+        yPosition=height+1000;
+        id=z;
+    }
+    public void show()
+    {
+        noStroke();
+        fill(255);
+        ellipse((float)(xPosition),(float)(yPosition),30,30);
+    }
+}
+void mouseClicked()
+{    
+    beginLoop=true;
+}
